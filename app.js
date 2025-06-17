@@ -16,4 +16,7 @@ app.use("/auth", authRouter);
 const craneRouter = require("./routes/crane.routes");
 app.use("/", craneRouter);
 
+const inquiryRouter = require("./routes/inquiry.routes");
+app.use("/", inquiryRouter);
+
 module.exports = app;

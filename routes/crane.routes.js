@@ -38,7 +38,7 @@ router.post("/cranes", isAuthenticated, async (req, res, next) => {
   }
 });
 
-// Retrieves all cranes
+// Retrieve all cranes
 router.get("/cranes", async (req, res, next) => {
   try {
     const allCranes = await Crane.find({});
@@ -48,7 +48,7 @@ router.get("/cranes", async (req, res, next) => {
   }
 });
 
-// Retrives a specific crane (by id)
+// Retrive a specific crane (by id)
 router.get("/cranes/:craneId", async (req, res, next) => {
   try {
     const { craneId } = req.params;
@@ -68,7 +68,7 @@ router.get("/cranes/:craneId", async (req, res, next) => {
   }
 });
 
-// Updates a specific crane (by id)
+// Update a specific crane (by id)
 router.put("/cranes/:craneId", isAuthenticated, async (req, res, next) => {
   try {
     const { craneId } = req.params;
@@ -134,7 +134,10 @@ router.delete("/cranes/:craneId", isAuthenticated, async (req, res, next) => {
         .json({ message: "You can only delete your own crane" });
     }
 
-    await Crane.findByIdAndDelete(craneId);
+    const deletedCrane = await Crane.findByIdAndDelete(craneId);
+    if (!deletedCrane) {
+      return res.status(404).json({ message: "Crane not found" });
+    }
 
     res
       .status(200)
