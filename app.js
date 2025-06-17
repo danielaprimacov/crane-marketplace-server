@@ -13,4 +13,7 @@ app.use("/", homeRoute);
 const authRouter = require("./routes/auth.routes");
 app.use("/auth", authRouter);
 
+const craneRouter = require("./routes/crane.routes");
+app.use("/", craneRouter);
+
 module.exports = app;
