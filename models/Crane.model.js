@@ -7,7 +7,16 @@ const craneSchema = new Schema(
     producer: { type: String, required: true, index: true },
     images: { type: [String], required: true, validate: (v) => v.length > 0 },
     description: { type: String, default: "" },
-    price: { type: Number, required: true, min: 0 },
+    price: {
+      type: Number,
+      min: 0,
+      required: [
+        function () {
+          return this.status === "for sale";
+        },
+        "Price is required when a crane is for sale",
+      ],
+    },
     location: { type: String, require: true, index: true },
     status: { type: String, enum: ["for sale", "for rent"], required: true },
     owner: { type: Schema.Types.ObjectId, ref: "User", required: true },
