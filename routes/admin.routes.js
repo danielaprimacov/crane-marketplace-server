@@ -4,7 +4,7 @@ const { isAdmin } = require("../middleware/role.middleware");
 
 const router = express.Router();
 
-router.get("/dashboard", isAuthenticated, isAdmin, (req, res, next) => {
+router.get("/", isAuthenticated, isAdmin, (req, res, next) => {
   res.json({ message: "Admin data" });
 });
 

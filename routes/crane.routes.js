@@ -10,6 +10,7 @@ router.post("/cranes", isAuthenticated, async (req, res, next) => {
   try {
     const {
       title,
+      producer,
       images,
       description = "",
       price,
@@ -23,6 +24,7 @@ router.post("/cranes", isAuthenticated, async (req, res, next) => {
 
     const newCrane = await Crane.create({
       title,
+      producer,
       images,
       description,
       price,
@@ -73,8 +75,10 @@ router.put("/cranes/:craneId", isAuthenticated, async (req, res, next) => {
   try {
     const { craneId } = req.params;
     const userId = req.payload._id;
+    const userRole = req.payload.role;
     const {
       title,
+      producer,
       images,
       description,
       price,
@@ -92,7 +96,7 @@ router.put("/cranes/:craneId", isAuthenticated, async (req, res, next) => {
       return res.status(404).json({ message: "Crane not found" });
     }
 
-    if (!crane.owner.equals(userId)) {
+    if (userRole !== "admin" && !crane.owner.equals(userId)) {
       return res
         .status(403)
         .json({ message: "You can only update your own crane" });
@@ -100,7 +104,16 @@ router.put("/cranes/:craneId", isAuthenticated, async (req, res, next) => {
 
     const updatedCrane = await Crane.findByIdAndUpdate(
       craneId,
-      { title, images, description, price, location, status, availability },
+      {
+        title,
+        producer,
+        images,
+        description,
+        price,
+        location,
+        status,
+        availability,
+      },
       { new: true, runValidators: true }
     );
     if (!updatedCrane) {
@@ -118,6 +131,7 @@ router.delete("/cranes/:craneId", isAuthenticated, async (req, res, next) => {
   try {
     const { craneId } = req.params;
     const userId = req.payload._id;
+    const userRole = req.payload.role;
 
     if (!mongoose.Types.ObjectId.isValid(craneId)) {
       return res.status(400).json({ message: "Specified id is not valid" });
@@ -128,7 +142,7 @@ router.delete("/cranes/:craneId", isAuthenticated, async (req, res, next) => {
       return res.status(404).json({ message: "Crane not found" });
     }
 
-    if (!crane.owner.equals(userId)) {
+    if (userRole !== "admin" && !crane.owner.equals(userId)) {
       return res
         .status(403)
         .json({ message: "You can only delete your own crane" });

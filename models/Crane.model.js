@@ -4,6 +4,7 @@ const { Schema, model } = mongoose;
 const craneSchema = new Schema(
   {
     title: { type: String, required: true },
+    producer: { type: String, required: true, index: true },
     images: { type: [String], required: true, validate: (v) => v.length > 0 },
     description: { type: String, default: "" },
     price: { type: Number, required: true, min: 0 },
