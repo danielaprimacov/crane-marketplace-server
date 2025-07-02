@@ -9,11 +9,14 @@ const { isAuthenticated } = require("../middleware/jwt.middleware");
 router.post("/cranes", isAuthenticated, async (req, res, next) => {
   try {
     const {
-      title,
       producer,
+      seriesCode,
+      capacityClassNumber,
+      variantRevision,
       images,
       description = "",
-      price,
+      salePrice,
+      rentPrice,
       location,
       status,
       availability,
@@ -23,11 +26,14 @@ router.post("/cranes", isAuthenticated, async (req, res, next) => {
     const owner = req.payload._id;
 
     const newCrane = await Crane.create({
-      title,
       producer,
+      seriesCode,
+      capacityClassNumber,
+      variantRevision,
       images,
       description,
-      price,
+      salePrice,
+      rentPrice,
       location,
       status,
       availability,
@@ -76,12 +82,16 @@ router.put("/cranes/:craneId", isAuthenticated, async (req, res, next) => {
     const { craneId } = req.params;
     const userId = req.payload._id;
     const userRole = req.payload.role;
+
     const {
-      title,
       producer,
+      seriesCode,
+      capacityClassNumber,
+      variantRevision,
       images,
       description,
-      price,
+      salePrice,
+      rentPrice,
       location,
       status,
       availability,
@@ -105,11 +115,14 @@ router.put("/cranes/:craneId", isAuthenticated, async (req, res, next) => {
     const updatedCrane = await Crane.findByIdAndUpdate(
       craneId,
       {
-        title,
         producer,
+        seriesCode,
+        capacityClassNumber,
+        variantRevision,
         images,
         description,
-        price,
+        salePrice,
+        rentPrice,
         location,
         status,
         availability,

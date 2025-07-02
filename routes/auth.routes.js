@@ -89,7 +89,15 @@ router.post("/login", async (req, res, next) => {
       expiresIn: "6h",
     });
 
-    res.status(200).json({ authToken: token });
+    res
+      .cookie("authToken", token, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "Strict", // or "Lax" if you need cross-site popups
+        maxAge: 6 * 60 * 60 * 1000, // 6 hours in ms
+      })
+      .status(200)
+      .json({ authToken: token });
   } catch (err) {
     next(err);
   }
