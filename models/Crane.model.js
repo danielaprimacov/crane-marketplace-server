@@ -16,11 +16,28 @@ const craneSchema = new Schema(
       min: 0,
       description: "Capacity or class number in tonnes (e.g. 100)",
     },
+    capacity: {
+      type: Number,
+      min: 0,
+      description: "Maximum lifting capacity in tonnes",
+    },
     variantRevision: {
       type: String,
       default: "",
       trim: true,
       description: "Variant or revision code (e.g. '5.2', '4L', 'B')",
+    },
+    radius: {
+      type: Number,
+      min: 0,
+      required: true,
+      description: "Maximum outreach (radius) in meters",
+    },
+    height: {
+      type: Number,
+      min: 0,
+      required: true,
+      description: "Maximum boom height in meters",
     },
     images: { type: [String], required: true, validate: (v) => v.length > 0 },
     description: { type: String, default: "" },
