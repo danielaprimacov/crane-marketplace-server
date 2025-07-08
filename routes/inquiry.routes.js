@@ -45,10 +45,12 @@ router.get("/inquiries", isAuthenticated, async (req, res, next) => {
       return res.status(403).json("Forbidden: admin only");
     }
 
-    const allInquiries = await Inquiry.find({}).populate({
-      path: "crane",
-      select: "title",
-    });
+    const allInquiries = await Inquiry.find({})
+      .populate({
+        path: "crane",
+        select: "producer seriesCode variantRevision",
+      })
+      .exec();
     res.json(allInquiries);
   } catch (error) {
     next(error);
