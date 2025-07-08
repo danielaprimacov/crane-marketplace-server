@@ -16,6 +16,9 @@ app.use("/auth", authRouter);
 const adminRouter = require("./routes/admin.routes");
 app.use("/admin", adminRouter);
 
+const usersRouter = require("./routes/users.routes");
+app.use("/users", usersRouter);
+
 const craneRouter = require("./routes/crane.routes");
 app.use("/", craneRouter);
 
