@@ -23,6 +23,8 @@ const inquirySchema = new Schema(
       to: { type: Date, required: false },
     },
     address: { type: String, required: false, trime: true },
+    needsTransport: { type: Boolean, default: false },
+    needsInstallation: { type: Boolean, default: false },
     status: {
       type: String,
       enum: ["new", "in_progress", "resolved"],

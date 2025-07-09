@@ -8,7 +8,16 @@ const { isAuthenticated } = require("../middleware/jwt.middleware");
 // Create a new inquiry
 router.post("/inquiries", async (req, res, next) => {
   try {
-    const { customerName, email, message, crane, period, address } = req.body;
+    const {
+      customerName,
+      email,
+      message,
+      crane,
+      period,
+      address,
+      needsTransport,
+      needsInstallation,
+    } = req.body;
 
     // Validate required fields
     if (![customerName, email, message, crane].every(Boolean)) {
@@ -29,6 +38,8 @@ router.post("/inquiries", async (req, res, next) => {
       crane,
       period,
       address,
+      needsTransport,
+      needsInstallation,
     });
 
     res.status(201).json(newInquiry);
@@ -92,6 +103,8 @@ router.put("/inquiries/:inquiryId", isAuthenticated, async (req, res, next) => {
       crane,
       period,
       address,
+      needsTransport,
+      needsInstallation,
       status,
       isRead,
     } = req.body;
@@ -105,18 +118,27 @@ router.put("/inquiries/:inquiryId", isAuthenticated, async (req, res, next) => {
       return res.status(400).json({ message: "Specified id is not valid" });
     }
 
+    const updateData = {};
+    for (let key of [
+      "status",
+      "period",
+      "isRead",
+      "customerName",
+      "email",
+      "message",
+      "crane",
+      "address",
+      "needsTransport",
+      "needsInstallation",
+    ]) {
+      if (req.body[key] !== undefined) {
+        updateData[key] = req.body[key];
+      }
+    }
+
     const updatedInquiry = await Inquiry.findByIdAndUpdate(
       inquiryId,
-      {
-        customerName,
-        email,
-        message,
-        crane,
-        period,
-        address,
-        status,
-        isRead,
-      },
+      updateData,
       { new: true, runValidators: true }
     );
     if (!updatedInquiry) {
