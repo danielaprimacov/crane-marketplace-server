@@ -19,6 +19,9 @@ app.use("/admin", adminRouter);
 const usersRouter = require("./routes/users.routes");
 app.use("/users", usersRouter);
 
+const messagesRouter = require("./routes/message.routes");
+app.use("/", messagesRouter);
+
 const craneRouter = require("./routes/crane.routes");
 app.use("/", craneRouter);
 
