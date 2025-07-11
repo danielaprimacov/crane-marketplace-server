@@ -22,9 +22,6 @@ module.exports = (app) => {
     })
   );
 
-  // also handle preflight for every route
-  app.options("*", cors());
-
   // In development environment the app logs
   app.use(logger("dev"));
 
