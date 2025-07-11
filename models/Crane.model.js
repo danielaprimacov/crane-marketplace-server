@@ -3,7 +3,7 @@ const { Schema, model } = mongoose;
 
 const craneSchema = new Schema(
   {
-    producer: { type: String, required: true, index: true },
+    producer: { type: String, required: true, index: true, trim: true },
     seriesCode: {
       type: String,
       required: true,
