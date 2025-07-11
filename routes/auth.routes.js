@@ -63,7 +63,7 @@ router.post("/signup", async (req, res, next) => {
 // POST /auth/login
 router.post("/login", async (req, res, next) => {
   try {
-    console.log("JWT Secret:", process.env.TOKEN_SECRET);
+    
     const { email, password } = req.body;
     if (![email, password].every(Boolean)) {
       return res.status(400).json({ message: "Provide email and password." });
