@@ -18,12 +18,12 @@ const usersRouter = require("./routes/users.routes");
 app.use("/users", usersRouter);
 
 const messagesRouter = require("./routes/message.routes");
-app.use("/", messagesRouter);
+app.use("/messages", messagesRouter);
 
 const craneRouter = require("./routes/crane.routes");
-app.use("/", craneRouter);
+app.use("/cranes", craneRouter);
 
 const inquiryRouter = require("./routes/inquiry.routes");
-app.use("/", inquiryRouter);
+app.use("/inquiries", inquiryRouter);
 
 module.exports = app;

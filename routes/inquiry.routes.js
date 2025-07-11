@@ -6,7 +6,7 @@ const Inquiry = require("../models/Inquiry.model");
 const { isAuthenticated } = require("../middleware/jwt.middleware");
 
 // Create a new inquiry
-router.post("/inquiries", async (req, res, next) => {
+router.post("/", async (req, res, next) => {
   try {
     const {
       customerName,
@@ -49,7 +49,7 @@ router.post("/inquiries", async (req, res, next) => {
 });
 
 // Retrieve all inquiries
-router.get("/inquiries", isAuthenticated, async (req, res, next) => {
+router.get("/", isAuthenticated, async (req, res, next) => {
   try {
     const role = req.payload.role;
     if (role !== "admin") {
@@ -69,7 +69,7 @@ router.get("/inquiries", isAuthenticated, async (req, res, next) => {
 });
 
 // Retrieve a secific inquiry (by id)
-router.get("/inquiries/:inquiryId", isAuthenticated, async (req, res, next) => {
+router.get("/:inquiryId", isAuthenticated, async (req, res, next) => {
   try {
     const { inquiryId } = req.params;
 
@@ -93,7 +93,7 @@ router.get("/inquiries/:inquiryId", isAuthenticated, async (req, res, next) => {
 });
 
 // Update a specific inquiry (by id)
-router.put("/inquiries/:inquiryId", isAuthenticated, async (req, res, next) => {
+router.put("/:inquiryId", isAuthenticated, async (req, res, next) => {
   try {
     const { inquiryId } = req.params;
     const {
@@ -150,33 +150,29 @@ router.put("/inquiries/:inquiryId", isAuthenticated, async (req, res, next) => {
 });
 
 // Delete a specific inquiry (by id)
-router.delete(
-  "/inquiries/:inquiryId",
-  isAuthenticated,
-  async (req, res, next) => {
-    try {
-      const { inquiryId } = req.params;
+router.delete("/:inquiryId", isAuthenticated, async (req, res, next) => {
+  try {
+    const { inquiryId } = req.params;
 
-      const role = req.payload.role;
-      if (role !== "admin") {
-        return res.status(403).json("Forbidden: admin only");
-      }
-
-      if (!mongoose.Types.ObjectId.isValid(inquiryId)) {
-        return res.status(400).json({ message: "Specified id is not valid" });
-      }
-
-      const deletedInquiry = await Inquiry.findByIdAndDelete(inquiryId);
-      if (!deletedInquiry) {
-        return res.status(404).json({ message: "Inquiry not found" });
-      }
-      res.status(200).json({
-        message: `Inquiry with ${inquiryId} was deleted successfully`,
-      });
-    } catch (error) {
-      next(error);
+    const role = req.payload.role;
+    if (role !== "admin") {
+      return res.status(403).json("Forbidden: admin only");
     }
+
+    if (!mongoose.Types.ObjectId.isValid(inquiryId)) {
+      return res.status(400).json({ message: "Specified id is not valid" });
+    }
+
+    const deletedInquiry = await Inquiry.findByIdAndDelete(inquiryId);
+    if (!deletedInquiry) {
+      return res.status(404).json({ message: "Inquiry not found" });
+    }
+    res.status(200).json({
+      message: `Inquiry with ${inquiryId} was deleted successfully`,
+    });
+  } catch (error) {
+    next(error);
   }
-);
+});
 
 module.exports = router;

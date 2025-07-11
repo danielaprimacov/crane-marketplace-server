@@ -6,7 +6,7 @@ const Crane = require("../models/Crane.model");
 const { isAuthenticated } = require("../middleware/jwt.middleware");
 
 // Create a new crane
-router.post("/cranes", isAuthenticated, async (req, res, next) => {
+router.post("/", isAuthenticated, async (req, res, next) => {
   try {
     const {
       producer,
@@ -53,7 +53,7 @@ router.post("/cranes", isAuthenticated, async (req, res, next) => {
 });
 
 // Retrieve all cranes
-router.get("/cranes", async (req, res, next) => {
+router.get("/", async (req, res, next) => {
   try {
     const allCranes = await Crane.find({});
     res.json(allCranes);
@@ -63,7 +63,7 @@ router.get("/cranes", async (req, res, next) => {
 });
 
 // Retrive a specific crane (by id)
-router.get("/cranes/:craneId", async (req, res, next) => {
+router.get("/:craneId", async (req, res, next) => {
   try {
     const { craneId } = req.params;
 
@@ -83,7 +83,7 @@ router.get("/cranes/:craneId", async (req, res, next) => {
 });
 
 // Update a specific crane (by id)
-router.put("/cranes/:craneId", isAuthenticated, async (req, res, next) => {
+router.put("/:craneId", isAuthenticated, async (req, res, next) => {
   try {
     const { craneId } = req.params;
     const userId = req.payload._id;
@@ -152,7 +152,7 @@ router.put("/cranes/:craneId", isAuthenticated, async (req, res, next) => {
 });
 
 // Delete a specific crane (by id)
-router.delete("/cranes/:craneId", isAuthenticated, async (req, res, next) => {
+router.delete("/:craneId", isAuthenticated, async (req, res, next) => {
   try {
     const { craneId } = req.params;
     const userId = req.payload._id;

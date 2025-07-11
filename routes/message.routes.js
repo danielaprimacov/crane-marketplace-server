@@ -5,7 +5,7 @@ const Message = require("../models/Message.model");
 const { isAuthenticated } = require("../middleware/jwt.middleware");
 const { isAdmin } = require("../middleware/role.middleware");
 
-router.get("/messages", isAuthenticated, isAdmin, async (req, res, next) => {
+router.get("/", isAuthenticated, isAdmin, async (req, res, next) => {
   try {
     const all = await Message.find().sort({ createdAt: -1 });
     res.json(all);
@@ -14,7 +14,7 @@ router.get("/messages", isAuthenticated, isAdmin, async (req, res, next) => {
   }
 });
 
-router.post("/messages", async (req, res, next) => {
+router.post("/", async (req, res, next) => {
   try {
     const data = req.body;
     // you might want to validate required fields here based on formType
@@ -25,18 +25,13 @@ router.post("/messages", async (req, res, next) => {
   }
 });
 
-router.delete(
-  "/messages/:id",
-  isAuthenticated,
-  isAdmin,
-  async (req, res, next) => {
-    try {
-      await Message.findByIdAndDelete(req.params.id);
-      res.status(204).send();
-    } catch (err) {
-      next(err);
-    }
+router.delete("/:id", isAuthenticated, isAdmin, async (req, res, next) => {
+  try {
+    await Message.findByIdAndDelete(req.params.id);
+    res.status(204).send();
+  } catch (err) {
+    next(err);
   }
-);
+});
 
 module.exports = router;
