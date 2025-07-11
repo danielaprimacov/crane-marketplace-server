@@ -10,7 +10,7 @@ module.exports = (app) => {
   const ALLOWED_ORIGINS = [
     "http://localhost:5173",
     "http://localhost:5174",
-    // production front-end TODO
+    "https://kranhub.netlify.app",
   ];
 
   app.use(
