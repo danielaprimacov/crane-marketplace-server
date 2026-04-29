@@ -25,7 +25,7 @@ router.post("/", isAuthenticated, async (req, res, next) => {
       availability,
     } = req.body;
 
-    // the owner from req.user.id
+    // Owner comes from the authenticated JWT payload, not from req.body
     const owner = req.payload._id;
 
     const newCrane = await Crane.create({
@@ -71,7 +71,7 @@ router.get("/:craneId", async (req, res, next) => {
       return res.status(400).json({ message: "Specified id is not valid" });
     }
 
-    const crane = await Crane.findById(craneId).populate("owner");
+    const crane = await Crane.findById(craneId).populate("owner", "name");
     if (!crane) {
       return res.status(404).json({ message: "Crane not found" });
     }
