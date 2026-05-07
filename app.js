@@ -1,29 +1,27 @@
-require("dotenv/config");
-require("./db");
 const express = require("express");
 
 const app = express();
+
 require("./config")(app);
 
-const homeRoute = require("./routes/index");
-app.use("/", homeRoute);
+const routes = require("./routes");
 
-const authRouter = require("./routes/auth.routes");
-app.use("/auth", authRouter);
+app.get("/health", (req, res) => {
+  res.status(200).json({ status: "ok", service: "kranhub-api" });
+});
 
-const adminRouter = require("./routes/admin.routes");
-app.use("/admin", adminRouter);
+app.use("/", routes);
 
-const usersRouter = require("./routes/users.routes");
-app.use("/users", usersRouter);
+app.use((req, res) => {
+  res.status(404).json({ message: "Route not found" });
+});
 
-const messagesRouter = require("./routes/message.routes");
-app.use("/messages", messagesRouter);
+app.use((err, req, res, next) => {
+  console.error(err);
 
-const craneRouter = require("./routes/crane.routes");
-app.use("/cranes", craneRouter);
-
-const inquiryRouter = require("./routes/inquiry.routes");
-app.use("/inquiries", inquiryRouter);
+  res
+    .status(err.status || 500)
+    .json({ message: err.message || "Internal server error" });
+});
 
 module.exports = app;
