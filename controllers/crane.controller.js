@@ -1,53 +1,4 @@
-const mongoose = require("mongoose");
-
-const Crane = require("../models/Crane.model");
-
-const CRANE_ALLOWED_FIELDS = [
-  "producer",
-  "seriesCode",
-  "capacityClassNumber",
-  "capacity",
-  "variantRevision",
-  "radius",
-  "height",
-  "images",
-  "description",
-  "salePrice",
-  "rentPrice",
-  "location",
-  "status",
-  "availability",
-];
-
-function isValidObjectId(id) {
-  return mongoose.Types.ObjectId.isValid(id);
-}
-
-function pickAllowedFields(source, allowedFields) {
-  return allowedFields.reduce((result, field) => {
-    if (Object.prototype.hasOwnProperty.call(source, field)) {
-      result[field] = source[field];
-    }
-
-    return result;
-  }, {});
-}
-
-async function findCraneOrReturnError(craneId, res) {
-  if (!isValidObjectId(craneId)) {
-    res.status(400).json({ message: "Specified id is not valid" });
-    return null;
-  }
-
-  const crane = await Crane.findById(craneId);
-
-  if (!crane) {
-    res.status(404).json({ message: "Crane not found" });
-    return null;
-  }
-
-  return crane;
-}
+const craneService = require("../services/crane.service");
 
 function canManageCrane(user, crane) {
   if (!user || !crane) return false;
@@ -60,13 +11,7 @@ function canManageCrane(user, crane) {
 
 async function createCrane(req, res, next) {
   try {
-    const craneData = pickAllowedFields(req.body, CRANE_ALLOWED_FIELDS);
-
-    const newCrane = await Crane.create({
-      ...craneData,
-      description: craneData.description || "",
-      owner: req.payload._id,
-    });
+    const newCrane = await craneService.createCrane(req.body, req.payload._id);
 
     res.status(201).json(newCrane);
   } catch (error) {
@@ -76,9 +21,7 @@ async function createCrane(req, res, next) {
 
 async function getAllCranes(req, res, next) {
   try {
-    const allCranes = await Crane.find({})
-      .populate("owner", "name")
-      .sort({ createdAt: -1 });
+    const allCranes = await craneService.getAllCranes();
 
     res.status(200).json(allCranes);
   } catch (error) {
@@ -90,15 +33,7 @@ async function getCraneById(req, res, next) {
   try {
     const { craneId } = req.params;
 
-    if (!isValidObjectId(craneId)) {
-      return res.status(400).json({ message: "Specified id is not valid" });
-    }
-
-    const crane = await Crane.findById(craneId).populate("owner", "name");
-
-    if (!crane) {
-      return res.status(404).json({ message: "Crane not found" });
-    }
+    const crane = await craneService.getCraneById(craneId);
 
     res.status(200).json(crane);
   } catch (error) {
@@ -110,8 +45,7 @@ async function updateCrane(req, res, next) {
   try {
     const { craneId } = req.params;
 
-    const crane = await findCraneOrReturnError(craneId, res);
-    if (!crane) return;
+    const crane = await craneService.findCraneByIdOrThrow(craneId);
 
     if (!canManageCrane(req.payload, crane)) {
       return res
@@ -119,12 +53,7 @@ async function updateCrane(req, res, next) {
         .json({ message: "You can only update your own crane" });
     }
 
-    const updateData = pickAllowedFields(req.body, CRANE_ALLOWED_FIELDS);
-
-    const updatedCrane = await Crane.findByIdAndUpdate(craneId, updateData, {
-      new: true,
-      runValidators: true,
-    }).populate("owner", "name");
+    const updatedCrane = await craneService.updateCrane(craneId, req.body);
 
     res.status(200).json(updatedCrane);
   } catch (error) {
@@ -136,8 +65,7 @@ async function deleteCrane(req, res, next) {
   try {
     const { craneId } = req.params;
 
-    const crane = await findCraneOrReturnError(craneId, res);
-    if (!crane) return;
+    const crane = await craneService.findCraneByIdOrThrow(craneId);
 
     if (!canManageCrane(req.payload, crane)) {
       return res
@@ -145,7 +73,7 @@ async function deleteCrane(req, res, next) {
         .json({ message: "You can only delete your own crane" });
     }
 
-    await Crane.findByIdAndDelete(craneId);
+    await craneService.deleteCrane(craneId);
 
     res.status(200).json({
       message: `Crane with id ${craneId} was deleted successfully`,
