@@ -38,7 +38,7 @@ async function connectDB() {
     const connection = await mongoose.connect(MONGO_URI);
 
     console.log(
-      `Connetcted to MongoDB. Database name: "${connection.connections[0].name}"`
+      `Connected to MongoDB. Database name: "${connection.connections[0].name}"`
     );
 
     await seedAdmin();
