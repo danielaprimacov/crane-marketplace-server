@@ -8,7 +8,7 @@ const craneSchema = new Schema(
       type: String,
       required: true,
       trim: true,
-      decription: "Series or type Code (e.g. 'LTM', 'AC', 'MD')",
+      description: "Series or type code (e.g. 'LTM', 'AC', 'MD')",
     },
     capacityClassNumber: {
       type: Number,
@@ -73,7 +73,7 @@ const craneSchema = new Schema(
         ],
       },
     },
-    location: { type: String, require: true, index: true },
+    location: { type: String, required: true, index: true, trim: true },
     status: { type: String, enum: ["for sale", "for rent"], required: true },
     owner: { type: Schema.Types.ObjectId, ref: "User", required: true },
     availability: { from: { type: Date }, to: { type: Date } },
