@@ -5,45 +5,71 @@ const mongoose = require("mongoose");
 const Crane = require("../models/Crane.model");
 const { isAuthenticated } = require("../middleware/jwt.middleware");
 
+const CRANE_ALLOWED_FIELDS = [
+  "producer",
+  "seriesCode",
+  "capacityClassNumber",
+  "capacity",
+  "variantRevision",
+  "radius",
+  "height",
+  "images",
+  "description",
+  "salePrice",
+  "rentPrice",
+  "location",
+  "status",
+  "availability",
+];
+
+function isValidObjectId(id) {
+  return mongoose.Types.ObjectId.isValid(id);
+}
+
+function pickAllowedFields(source, allowedFields) {
+  return allowedFields.reduce((result, field) => {
+    if (Object.prototype.hasOwnProperty.call(source, field)) {
+      result[field] = source[field];
+    }
+
+    return result;
+  }, {});
+}
+
+async function findCraneOrReturnError(craneId, res) {
+  if (!isValidObjectId(craneId)) {
+    res.status(400).json({ message: "Specified id is not valid" });
+    return null;
+  }
+
+  const crane = await Crane.findById(craneId);
+
+  if (!crane) {
+    res.status(404).json({ message: "Crane not found" });
+    return null;
+  }
+
+  return crane;
+}
+
+function canManageCrane(user, crane) {
+  if (!user || !crane) return false;
+
+  const userId = user._id;
+  const userRole = user.role;
+
+  return userRole === "admin" || crane.owner.equals(userId);
+}
+
 // Create a new crane
 router.post("/", isAuthenticated, async (req, res, next) => {
   try {
-    const {
-      producer,
-      seriesCode,
-      capacityClassNumber,
-      capacity,
-      variantRevision,
-      radius,
-      height,
-      images,
-      description = "",
-      salePrice,
-      rentPrice,
-      location,
-      status,
-      availability,
-    } = req.body;
-
-    // Owner comes from the authenticated JWT payload, not from req.body
-    const owner = req.payload._id;
+    const craneData = pickAllowedFields(req.body, CRANE_ALLOWED_FIELDS);
 
     const newCrane = await Crane.create({
-      producer,
-      seriesCode,
-      capacityClassNumber,
-      capacity,
-      variantRevision,
-      radius,
-      height,
-      images,
-      description,
-      salePrice,
-      rentPrice,
-      location,
-      status,
-      availability,
-      owner,
+      ...craneData,
+      description: craneData.description || "",
+      owner: req.payload._id,
     });
 
     res.status(201).json(newCrane);
@@ -55,8 +81,10 @@ router.post("/", isAuthenticated, async (req, res, next) => {
 // Retrieve all cranes
 router.get("/", async (req, res, next) => {
   try {
-    const allCranes = await Crane.find({});
-    res.json(allCranes);
+    const allCranes = await Crane.find({})
+      .populate("owner", "name")
+      .sort({ createdAd: -1 });
+    res.status(200).json(allCranes);
   } catch (error) {
     next(error);
   }
@@ -67,11 +95,12 @@ router.get("/:craneId", async (req, res, next) => {
   try {
     const { craneId } = req.params;
 
-    if (!mongoose.Types.ObjectId.isValid(craneId)) {
+    if (!isValidObjectId(craneId)) {
       return res.status(400).json({ message: "Specified id is not valid" });
     }
 
     const crane = await Crane.findById(craneId).populate("owner", "name");
+
     if (!crane) {
       return res.status(404).json({ message: "Crane not found" });
     }
@@ -86,64 +115,22 @@ router.get("/:craneId", async (req, res, next) => {
 router.put("/:craneId", isAuthenticated, async (req, res, next) => {
   try {
     const { craneId } = req.params;
-    const userId = req.payload._id;
-    const userRole = req.payload.role;
 
-    const {
-      producer,
-      seriesCode,
-      capacityClassNumber,
-      capacity,
-      variantRevision,
-      radius,
-      height,
-      images,
-      description,
-      salePrice,
-      rentPrice,
-      location,
-      status,
-      availability,
-    } = req.body;
+    const crane = await findCraneOrReturnError(craneId, res);
+    if (!crane) return;
 
-    if (!mongoose.Types.ObjectId.isValid(craneId)) {
-      return res.status(400).json({ message: "Specified id is not valid" });
-    }
-
-    const crane = await Crane.findById(craneId);
-    if (!crane) {
-      return res.status(404).json({ message: "Crane not found" });
-    }
-
-    if (userRole !== "admin" && !crane.owner.equals(userId)) {
+    if (!canManageCrane(req.payload, crane)) {
       return res
         .status(403)
         .json({ message: "You can only update your own crane" });
     }
 
-    const updatedCrane = await Crane.findByIdAndUpdate(
-      craneId,
-      {
-        producer,
-        seriesCode,
-        capacityClassNumber,
-        capacity,
-        variantRevision,
-        radius,
-        height,
-        images,
-        description,
-        salePrice,
-        rentPrice,
-        location,
-        status,
-        availability,
-      },
-      { new: true, runValidators: true }
-    );
-    if (!updatedCrane) {
-      return res.status(404).json({ message: "Crane not found" });
-    }
+    const updateData = pickAllowedFields(req.body, CRANE_ALLOWED_FIELDS);
+
+    const updatedCrane = await Crane.findByIdAndUpdate(craneId, updateData, {
+      new: true,
+      runValidators: true,
+    }).populate("owner", "name");
 
     res.status(200).json(updatedCrane);
   } catch (error) {
@@ -155,28 +142,17 @@ router.put("/:craneId", isAuthenticated, async (req, res, next) => {
 router.delete("/:craneId", isAuthenticated, async (req, res, next) => {
   try {
     const { craneId } = req.params;
-    const userId = req.payload._id;
-    const userRole = req.payload.role;
 
-    if (!mongoose.Types.ObjectId.isValid(craneId)) {
-      return res.status(400).json({ message: "Specified id is not valid" });
-    }
+    const crane = await findCraneOrReturnError(craneId, res);
+    if (!crane) return;
 
-    const crane = await Crane.findById(craneId);
-    if (!crane) {
-      return res.status(404).json({ message: "Crane not found" });
-    }
-
-    if (userRole !== "admin" && !crane.owner.equals(userId)) {
+    if (!canManageCrane(req.payload, crane)) {
       return res
         .status(403)
         .json({ message: "You can only delete your own crane" });
     }
 
-    const deletedCrane = await Crane.findByIdAndDelete(craneId);
-    if (!deletedCrane) {
-      return res.status(404).json({ message: "Crane not found" });
-    }
+    await Crane.findByIdAndDelete(craneId);
 
     res
       .status(200)
