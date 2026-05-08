@@ -1,5 +1,6 @@
 const mongoose = require("mongoose");
 
+const AppError = require("../utils/AppError");
 const Crane = require("../models/Crane.model");
 
 const CRANE_ALLOWED_FIELDS = [
@@ -33,21 +34,15 @@ function pickAllowedFields(source, allowedFields) {
   }, {});
 }
 
-function createServiceError(status, message) {
-  const error = new Error(message);
-  error.status = status;
-  return error;
-}
-
 async function findCraneByIdOrThrow(craneId) {
   if (!isValidObjectId(craneId)) {
-    throw createServiceError(400, "Specified id is not valid");
+    throw new AppError(400, "Specified id is not valid", "INVALID_CRANE_ID");
   }
 
   const crane = await Crane.findById(craneId);
 
   if (!crane) {
-    throw createServiceError(404, "Crane not found");
+    throw new AppError(404, "Crane not found", "CRANE_NOT_FOUND");
   }
 
   return crane;
@@ -69,13 +64,13 @@ async function getAllCranes() {
 
 async function getCraneById(craneId) {
   if (!isValidObjectId(craneId)) {
-    throw createServiceError(400, "Specified id is not valid");
+    throw new AppError(400, "Specified id is not valid", "INVALID_CRANE_ID");
   }
 
   const crane = await Crane.findById(craneId).populate("owner", "name");
 
   if (!crane) {
-    throw createServiceError(404, "Crane not found");
+    throw new AppError(404, "Crane not found", "CRANE_NOT_FOUND");
   }
 
   return crane;
@@ -90,7 +85,7 @@ async function updateCrane(craneId, craneInput) {
   }).populate("owner", "name");
 
   if (!updatedCrane) {
-    throw createServiceError(404, "Crane not found");
+    throw new AppError(404, "Crane not found", "CRANE_NOT_FOUND");
   }
 
   return updatedCrane;
@@ -100,7 +95,7 @@ async function deleteCrane(craneId) {
   const deletedCrane = await Crane.findByIdAndDelete(craneId);
 
   if (!deletedCrane) {
-    throw createServiceError(404, "Crane not found");
+    throw new AppError(404, "Crane not found", "CRANE_NOT_FOUND");
   }
 
   return deletedCrane;
