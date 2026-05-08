@@ -4,6 +4,7 @@ const { isAuthenticated } = require("../middleware/jwt.middleware");
 const requireRole = require("../middleware/requireRole.middleware");
 const ROLES = require("../constants/roles");
 
+const { getAdminAuditLogs } = require("../controllers/auditLog.controller");
 const { getAdminCranes } = require("../controllers/crane.controller");
 
 const router = express.Router();
@@ -21,6 +22,13 @@ router.get(
   isAuthenticated,
   requireRole(ROLES.ADMIN),
   getAdminCranes
+);
+
+router.get(
+  "/audit-logs",
+  isAuthenticated,
+  requireRole(ROLES.ADMIN),
+  getAdminAuditLogs
 );
 
 module.exports = router;
