@@ -1,5 +1,7 @@
 const craneService = require("../services/crane.service");
 
+const { toPublicCraneDto } = require("../dtos/crane.dto");
+
 function canManageCrane(user, crane) {
   if (!user || !crane) return false;
 
@@ -13,7 +15,7 @@ async function createCrane(req, res, next) {
   try {
     const newCrane = await craneService.createCrane(req.body, req.payload._id);
 
-    res.status(201).json(newCrane);
+    res.status(201).json(toPublicCraneDto(newCrane));
   } catch (error) {
     next(error);
   }
@@ -23,7 +25,7 @@ async function getAllCranes(req, res, next) {
   try {
     const allCranes = await craneService.getAllCranes();
 
-    res.status(200).json(allCranes);
+    res.status(200).json(allCranes.map(toPublicCraneDto));
   } catch (error) {
     next(error);
   }
@@ -35,7 +37,7 @@ async function getCraneById(req, res, next) {
 
     const crane = await craneService.getCraneById(craneId);
 
-    res.status(200).json(crane);
+    res.status(200).json(toPublicCraneDto(crane));
   } catch (error) {
     next(error);
   }
@@ -55,7 +57,7 @@ async function updateCrane(req, res, next) {
 
     const updatedCrane = await craneService.updateCrane(craneId, req.body);
 
-    res.status(200).json(updatedCrane);
+    res.status(200).json(toPublicCraneDto(updatedCrane));
   } catch (error) {
     next(error);
   }
