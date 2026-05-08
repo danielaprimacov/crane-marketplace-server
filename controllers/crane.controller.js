@@ -1,21 +1,15 @@
 const craneService = require("../services/crane.service");
 
-const { toPublicCraneDto } = require("../dtos/crane.dto");
+const { toPublicCraneDto, toOwnerCraneDto } = require("../dtos/crane.dto");
 
-function canManageCrane(user, crane) {
-  if (!user || !crane) return false;
-
-  const userId = user._id;
-  const userRole = user.role;
-
-  return userRole === "admin" || crane.owner.equals(userId);
-}
+const AppError = require("../utils/AppError");
+const { canManageOwnedResource } = require("../utils/permissions");
 
 async function createCrane(req, res, next) {
   try {
     const newCrane = await craneService.createCrane(req.body, req.payload._id);
 
-    res.status(201).json(toPublicCraneDto(newCrane));
+    res.status(201).json(toOwnerCraneDto(newCrane));
   } catch (error) {
     next(error);
   }
@@ -49,15 +43,17 @@ async function updateCrane(req, res, next) {
 
     const crane = await craneService.findCraneByIdOrThrow(craneId);
 
-    if (!canManageCrane(req.payload, crane)) {
-      return res
-        .status(403)
-        .json({ message: "You can only update your own crane" });
+    if (!canManageOwnedResource(req.payload, crane.owner)) {
+      throw new AppError(
+        403,
+        "You can only update your own crane",
+        "FORBIDDEN_CRANE_UPDATE"
+      );
     }
 
     const updatedCrane = await craneService.updateCrane(craneId, req.body);
 
-    res.status(200).json(toPublicCraneDto(updatedCrane));
+    res.status(200).json(toOwnerCraneDto(updatedCrane));
   } catch (error) {
     next(error);
   }
@@ -69,10 +65,12 @@ async function deleteCrane(req, res, next) {
 
     const crane = await craneService.findCraneByIdOrThrow(craneId);
 
-    if (!canManageCrane(req.payload, crane)) {
-      return res
-        .status(403)
-        .json({ message: "You can only delete your own crane" });
+    if (!canManageOwnedResource(req.payload, crane.owner)) {
+      throw new AppError(
+        403,
+        "You can only delete your own crane",
+        "FORBIDDEN_CRANE_DELETE"
+      );
     }
 
     await craneService.deleteCrane(craneId);
