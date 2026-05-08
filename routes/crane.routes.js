@@ -14,9 +14,16 @@ const {
   createCrane,
   getAllCranes,
   getCraneById,
+  getMyCranes,
   updateCrane,
   deleteCrane,
 } = require("../controllers/crane.controller");
+
+// Retrieve all cranes - public crane route
+router.get("/", getAllCranes);
+
+//Authenticated owner routes
+router.get("/my", isAuthenticated, getMyCranes);
 
 // Create a new crane
 router.post(
@@ -26,13 +33,11 @@ router.post(
   createCrane
 );
 
-// Retrieve all cranes
-router.get("/", getAllCranes);
-
-// Retrive a specific crane (by id)
+// Retrive a specific crane (by id) - public crane detail route
 router.get("/:craneId", validateRequest(craneIdParamSchema), getCraneById);
 
-// Update a specific crane (by id)
+// Owner / admin crane management routes
+// -- Update a specific crane (by id)
 router.put(
   "/:craneId",
   isAuthenticated,
@@ -40,7 +45,7 @@ router.put(
   updateCrane
 );
 
-// Delete a specific crane (by id)
+// -- Delete a specific crane (by id)
 router.delete(
   "/:craneId",
   isAuthenticated,

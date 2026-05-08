@@ -1,9 +1,13 @@
 const craneService = require("../services/crane.service");
 
-const { toPublicCraneDto, toOwnerCraneDto } = require("../dtos/crane.dto");
+const {
+  toPublicCraneDto,
+  toOwnerCraneDto,
+  toAdminCraneDto,
+} = require("../dtos/crane.dto");
 
 const AppError = require("../utils/AppError");
-const { canManageOwnedResource } = require("../utils/permissions");
+const { canManageOwnedResource, getUserId } = require("../utils/permissions");
 
 async function createCrane(req, res, next) {
   try {
@@ -32,6 +36,36 @@ async function getCraneById(req, res, next) {
     const crane = await craneService.getCraneById(craneId);
 
     res.status(200).json(toPublicCraneDto(crane));
+  } catch (error) {
+    next(error);
+  }
+}
+
+async function getMyCranes(req, res, next) {
+  try {
+    const ownerId = getUserId(req.payload);
+
+    if (!ownerId) {
+      throw new AppError(
+        401,
+        "Invalid authentication payload",
+        "INVALID_AUTH_PAYLOAD"
+      );
+    }
+
+    const cranes = await craneService.getCranesByOwner(ownerId);
+
+    res.status(200).json(cranes.map(toOwnerCraneDto));
+  } catch (error) {
+    next(error);
+  }
+}
+
+async function getAdminCranes(req, res, next) {
+  try {
+    const cranes = await craneService.getAllCranesForAdmin();
+
+    res.status(200).json(cranes.map(toAdminCraneDto));
   } catch (error) {
     next(error);
   }
@@ -87,6 +121,8 @@ module.exports = {
   createCrane,
   getAllCranes,
   getCraneById,
+  getMyCranes,
+  getAdminCranes,
   updateCrane,
   deleteCrane,
 };

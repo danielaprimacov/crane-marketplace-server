@@ -101,6 +101,18 @@ async function deleteCrane(craneId) {
   return deletedCrane;
 }
 
+async function getCranesByOwner(ownerId) {
+  return Crane.find({ owner: ownerId })
+    .populate("owner", "name email role")
+    .sort({ createdAt: -1 });
+}
+
+async function getAllCranesForAdmin() {
+  return Crane.find({})
+    .populate("owner", "name email role")
+    .sort({ createdAt: -1 });
+}
+
 module.exports = {
   findCraneByIdOrThrow,
   createCrane,
@@ -108,4 +120,6 @@ module.exports = {
   getCraneById,
   updateCrane,
   deleteCrane,
+  getCranesByOwner,
+  getAllCranesForAdmin,
 };
