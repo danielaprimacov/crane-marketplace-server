@@ -5,6 +5,8 @@ const app = express();
 require("./config")(app);
 
 const routes = require("./routes");
+const notFound = require("./middleware/notFound.middleware");
+const errorHandler = require("./middleware/errorHandler.middleware");
 
 app.get("/health", (req, res) => {
   res.status(200).json({ status: "ok", service: "kranhub-api" });
@@ -12,16 +14,7 @@ app.get("/health", (req, res) => {
 
 app.use("/", routes);
 
-app.use((req, res) => {
-  res.status(404).json({ message: "Route not found" });
-});
-
-app.use((err, req, res, next) => {
-  console.error(err);
-
-  res
-    .status(err.status || 500)
-    .json({ message: err.message || "Internal server error" });
-});
+app.use(notFound);
+app.use(errorHandler);
 
 module.exports = app;

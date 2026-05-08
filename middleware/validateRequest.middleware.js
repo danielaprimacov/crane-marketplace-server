@@ -1,30 +1,43 @@
 function validateRequest(schema) {
   return (req, res, next) => {
-    const result = schema.safeParse({
-      body: req.body,
-      params: req.params,
-      query: req.query,
-    });
+    try {
+      const result = schema.safeParse({
+        body: req.body,
+        params: req.params,
+        query: req.query,
+      });
 
-    if (!result.success) {
-      const errors = {};
+      if (!result.success) {
+        const errors = {};
 
-      for (const issue of result.error.issues) {
-        const path = issue.path.join(".");
-        errors[path] = issue.message;
+        for (const issue of result.error.issues) {
+          const path = issue.path.join(".");
+          errors[path] = issue.message;
+        }
+
+        return res.status(400).json({
+          message: "Validation failed",
+          code: "VALIDATION_ERROR",
+          details: errors,
+        });
       }
 
-      return res.status(400).json({
-        message: "Validation failed",
-        errors,
-      });
+      if (result.data.body !== undefined) {
+        req.body = result.data.body;
+      }
+
+      if (result.data.params !== undefined) {
+        req.params = result.data.params;
+      }
+
+      if (result.data.query !== undefined) {
+        Object.assign(req.query, result.data.query);
+      }
+
+      return next();
+    } catch (error) {
+      return next(error);
     }
-
-    req.body = result.data.body || req.body;
-    req.params = result.data.params || req.params;
-    req.query = result.data.query || req.query;
-
-    next();
   };
 }
 
