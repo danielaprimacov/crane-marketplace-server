@@ -7,15 +7,44 @@ function getIdString(value) {
     return value;
   }
 
-  if (value._id) {
-    return value._id.toString();
+  // MongoDB ObjectId
+  if (typeof value.toHexString === "function") {
+    return value.toHexString();
+  }
+
+  // Populated Mongoose document or plain object with _id
+  if (value._id && value._id !== value) {
+    return getIdString(value._id);
+  }
+
+  // Some objects may expose id
+  if (value.id && value.id !== value) {
+    return getIdString(value.id);
   }
 
   if (typeof value.toString === "function") {
-    return value.toString();
+    const stringValue = value.toString();
+
+    if (stringValue && stringValue !== "[object Object]") {
+      return stringValue;
+    }
   }
 
   return null;
+}
+
+function getUserId(user) {
+  if (!user) return null;
+
+  return (
+    getIdString(user._id) || getIdString(user.id) || getIdString(user.userId)
+  );
+}
+
+function getOwnerId(owner) {
+  if (!owner) return null;
+
+  return getIdString(owner);
 }
 
 function isAdmin(user) {
@@ -39,6 +68,8 @@ function canAccessAdminArea(user) {
 
 module.exports = {
   getIdString,
+  getUserId,
+  getOwnerId,
   isAdmin,
   isSameUser,
   canManageOwnedResource,
