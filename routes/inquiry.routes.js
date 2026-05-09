@@ -1,178 +1,55 @@
 const express = require("express");
-const router = express.Router();
-const mongoose = require("mongoose");
 
-const Inquiry = require("../models/Inquiry.model");
 const { isAuthenticated } = require("../middleware/jwt.middleware");
+const requireRole = require("../middleware/requireRole.middleware");
+const validateRequest = require("../middleware/validateRequest.middleware");
+const ROLES = require("../constants/roles");
+
+const {
+  createInquirySchema,
+  updateInquirySchema,
+  inquiryIdParamSchema,
+} = require("../validations/inquiry.validation");
+
+const {
+  createInquiry,
+  getAdminInquiries,
+  getAdminInquiryById,
+  updateAdminInquiry,
+  deleteAdminInquiry,
+} = require("../controllers/inquiry.controller");
+
+const router = express.Router();
 
 // Create a new inquiry
-router.post("/", async (req, res, next) => {
-  try {
-    const {
-      customerName,
-      email,
-      message,
-      crane,
-      period,
-      address,
-      needsTransport,
-      needsInstallation,
-    } = req.body;
-
-    // Validate required fields
-    if (![customerName, email, message, crane].every(Boolean)) {
-      return res
-        .status(400)
-        .json({ message: "Provide name, email, message and crane Id" });
-    }
-
-    // Validate crane Id format
-    if (!mongoose.Types.ObjectId.isValid(crane)) {
-      return res.status(400).json({ message: "Invalid crane ID." });
-    }
-
-    const newInquiry = await Inquiry.create({
-      customerName,
-      email,
-      message,
-      crane,
-      period,
-      address,
-      needsTransport,
-      needsInstallation,
-    });
-
-    res.status(201).json(newInquiry);
-  } catch (error) {
-    next(error);
-  }
-});
+router.post("/", validateRequest(createInquirySchema), createInquiry);
 
 // Retrieve all inquiries
-router.get("/", isAuthenticated, async (req, res, next) => {
-  try {
-    const role = req.payload.role;
-    if (role !== "admin") {
-      return res.status(403).json("Forbidden: admin only");
-    }
-
-    const allInquiries = await Inquiry.find({})
-      .populate({
-        path: "crane",
-        select: "producer seriesCode variantRevision",
-      })
-      .exec();
-    res.json(allInquiries);
-  } catch (error) {
-    next(error);
-  }
-});
+router.get("/", isAuthenticated, requireRole(ROLES.ADMIN), getAdminInquiries);
 
 // Retrieve a secific inquiry (by id)
-router.get("/:inquiryId", isAuthenticated, async (req, res, next) => {
-  try {
-    const { inquiryId } = req.params;
-
-    const role = req.payload.role;
-    if (role !== "admin") {
-      return res.status(403).json("Forbidden: admin only");
-    }
-
-    if (!mongoose.Types.ObjectId.isValid(inquiryId)) {
-      return res.status(400).json({ message: "Specified id is not valid" });
-    }
-
-    const inquiry = await Inquiry.findById(inquiryId).populate("crane");
-    if (!inquiry) {
-      return res.status(404).json({ message: "Inquiry not found" });
-    }
-    res.status(200).json(inquiry);
-  } catch (error) {
-    next(error);
-  }
-});
+router.get(
+  "/:inquiryId",
+  isAuthenticated,
+  requireRole(ROLES.ADMIN),
+  validateRequest(inquiryIdParamSchema)
+);
 
 // Update a specific inquiry (by id)
-router.put("/:inquiryId", isAuthenticated, async (req, res, next) => {
-  try {
-    const { inquiryId } = req.params;
-    const {
-      customerName,
-      email,
-      message,
-      crane,
-      period,
-      address,
-      needsTransport,
-      needsInstallation,
-      status,
-      isRead,
-    } = req.body;
-
-    const role = req.payload.role;
-    if (role !== "admin") {
-      return res.status(403).json("Forbidden: admin only");
-    }
-
-    if (!mongoose.Types.ObjectId.isValid(inquiryId)) {
-      return res.status(400).json({ message: "Specified id is not valid" });
-    }
-
-    const updateData = {};
-    for (let key of [
-      "status",
-      "period",
-      "isRead",
-      "customerName",
-      "email",
-      "message",
-      "crane",
-      "address",
-      "needsTransport",
-      "needsInstallation",
-    ]) {
-      if (req.body[key] !== undefined) {
-        updateData[key] = req.body[key];
-      }
-    }
-
-    const updatedInquiry = await Inquiry.findByIdAndUpdate(
-      inquiryId,
-      updateData,
-      { new: true, runValidators: true }
-    );
-    if (!updatedInquiry) {
-      return res.status(404).json({ message: "Inquiry not found" });
-    }
-
-    res.status(200).json(updatedInquiry);
-  } catch (error) {}
-});
+router.put(
+  "/:inquiryId",
+  isAuthenticated,
+  requireRole(ROLES.ADMIN),
+  validateRequest(updateInquirySchema)
+);
 
 // Delete a specific inquiry (by id)
-router.delete("/:inquiryId", isAuthenticated, async (req, res, next) => {
-  try {
-    const { inquiryId } = req.params;
-
-    const role = req.payload.role;
-    if (role !== "admin") {
-      return res.status(403).json("Forbidden: admin only");
-    }
-
-    if (!mongoose.Types.ObjectId.isValid(inquiryId)) {
-      return res.status(400).json({ message: "Specified id is not valid" });
-    }
-
-    const deletedInquiry = await Inquiry.findByIdAndDelete(inquiryId);
-    if (!deletedInquiry) {
-      return res.status(404).json({ message: "Inquiry not found" });
-    }
-    res.status(200).json({
-      message: `Inquiry with ${inquiryId} was deleted successfully`,
-    });
-  } catch (error) {
-    next(error);
-  }
-});
+router.delete(
+  "/:inquiryId",
+  isAuthenticated,
+  requireRole(ROLES.ADMIN),
+  validateRequest(inquiryIdParamSchema),
+  deleteAdminInquiry
+);
 
 module.exports = router;
