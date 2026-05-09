@@ -1,5 +1,6 @@
 const mongoose = require("mongoose");
 const { Schema, model } = mongoose;
+const ROLES = require("../constants/roles");
 
 const userSchema = new Schema(
   {
@@ -13,7 +14,7 @@ const userSchema = new Schema(
       match: [/\S+@\S+\.\S+/, "Invalid email format"],
     },
     password: { type: String, required: true, minlength: 8 },
-    role: { type: String, enum: ["user", "admin"], default: "user" },
+    role: { type: String, enum: Object.values(ROLES), default: ROLES.USER },
   },
   { timestamps: true }
 );
