@@ -22,7 +22,7 @@ const inquirySchema = new Schema(
       from: { type: Date, required: false },
       to: { type: Date, required: false },
     },
-    address: { type: String, required: false, trime: true },
+    address: { type: String, required: false, trim: true },
     needsTransport: { type: Boolean, default: false },
     needsInstallation: { type: Boolean, default: false },
     status: {
