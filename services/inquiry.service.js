@@ -47,9 +47,7 @@ async function ensureCraneExists(craneId) {
 
 async function findInquiryByIdOrThrow(inquiryId) {
   if (!isValidObjectId(inquiryId)) {
-    throw (
-      (new AppError(400), "Specified id is not valid", "INVALID_INQUIRY_ID")
-    );
+    throw new AppError(400, "Specified id is not valid", "INVALID_INQUIRY_ID");
   }
 
   const inquiry = await Inquiry.findById(inquiryId).populate({

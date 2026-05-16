@@ -32,7 +32,8 @@ router.get(
   "/:inquiryId",
   isAuthenticated,
   requireRole(ROLES.ADMIN),
-  validateRequest(inquiryIdParamSchema)
+  validateRequest(inquiryIdParamSchema),
+  getAdminInquiryById
 );
 
 // Update a specific inquiry (by id)
@@ -40,7 +41,8 @@ router.put(
   "/:inquiryId",
   isAuthenticated,
   requireRole(ROLES.ADMIN),
-  validateRequest(updateInquirySchema)
+  validateRequest(updateInquirySchema),
+  updateAdminInquiry
 );
 
 // Delete a specific inquiry (by id)
