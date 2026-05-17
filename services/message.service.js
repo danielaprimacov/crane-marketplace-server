@@ -13,7 +13,9 @@ async function verifyRecaptcha(token) {
       );
     }
 
-    console.warn("RECAPTCHA_SECRET_KEY is missing. Skipping captcha in dev.");
+    if (process.env.NODE_ENV !== "test") {
+      console.warn("RECAPTCHA_SECRET_KEY is missing. Skipping captcha in dev.");
+    }
     return true;
   }
 

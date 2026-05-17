@@ -3,6 +3,8 @@ const express = require("express");
 const { isAuthenticated } = require("../middleware/jwt.middleware");
 const requireRole = require("../middleware/requireRole.middleware");
 const validateRequest = require("../middleware/validateRequest.middleware");
+const { publicFormLimiter } = require("../middleware/rateLimit.middleware");
+
 const ROLES = require("../constants/roles");
 
 const {
@@ -22,7 +24,12 @@ const {
 const router = express.Router();
 
 // Create a new inquiry
-router.post("/", validateRequest(createInquirySchema), createInquiry);
+router.post(
+  "/",
+  publicFormLimiter,
+  validateRequest(createInquirySchema),
+  createInquiry
+);
 
 // Retrieve all inquiries
 router.get("/", isAuthenticated, requireRole(ROLES.ADMIN), getAdminInquiries);
