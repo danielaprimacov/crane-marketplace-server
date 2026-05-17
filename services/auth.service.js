@@ -7,7 +7,7 @@ const AppError = require("../utils/AppError");
 const TOKEN_SECRET = process.env.TOKEN_SECRET;
 
 if (!TOKEN_SECRET) {
-  throw new Erro("Missing TOKEN_SECRET environment variable");
+  throw new Error("Missing TOKEN_SECRET environment variable");
 }
 
 function createJwtPayload(user) {

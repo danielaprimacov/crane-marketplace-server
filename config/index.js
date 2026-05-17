@@ -23,10 +23,12 @@ module.exports = (app) => {
   );
 
   // In development environment the app logs
-  app.use(logger("dev"));
+  if (process.env.NODE_ENV !== "test") {
+    app.use(logger("dev"));
+  }
 
   // To have acces to `body` property in the request
-  app.use(express.json({ limit: "1mb" })); 
+  app.use(express.json({ limit: "1mb" }));
   app.use(express.urlencoded({ extended: false }));
   app.use(cookieParser());
 };

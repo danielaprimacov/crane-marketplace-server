@@ -1,5 +1,7 @@
 function errorHandler(error, req, res, next) {
-  console.error("Global error handler: ", error);
+  if (process.env.NODE_ENV !== "test") {
+    console.error("Global error handler: ", error);
+  }
 
   if (res.headersSent) {
     return next(error);
