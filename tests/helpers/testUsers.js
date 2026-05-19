@@ -5,11 +5,17 @@ async function signupUser({
   name = "Test User",
   email = "user@test.com",
   password = "Test123456!",
+  termsAccepted = true,
+  privacyPolicyAccepted = true,
+  marketingConsent = false,
 } = {}) {
   const response = await request(app).post("/auth/signup").send({
     name,
     email,
     password,
+    termsAccepted,
+    privacyPolicyAccepted,
+    marketingConsent,
   });
 
   return response;

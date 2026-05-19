@@ -15,6 +15,26 @@ const signupSchema = z.object({
         .string()
         .min(8, "Password must be at least 8 characters")
         .max(128, "Password must be at most 128 characters"),
+
+      termsAccepted: z
+        .boolean({
+          required_error: "Terms acceptance is required",
+          invalid_type_error: "Terms acceptance must be a boolean",
+        })
+        .refine((value) => value === true, {
+          message: "Terms acceptance is required",
+        }),
+
+      privacyPolicyAccepted: z
+        .boolean({
+          required_error: "Privacy policy acceptance is required",
+          invalid_type_error: "Privacy policy acceptance must be a boolean",
+        })
+        .refine((value) => value === true, {
+          message: "Privacy policy acceptance is required",
+        }),
+
+      marketingConsent: z.boolean().optional().default(false),
     })
     .strict(),
 });

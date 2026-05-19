@@ -5,6 +5,7 @@ const User = require("../models/User.model");
 const AppError = require("../utils/AppError");
 
 const TOKEN_SECRET = process.env.TOKEN_SECRET;
+const PRIVACY_POLICY_VERSION = "2026-05";
 
 if (!TOKEN_SECRET) {
   throw new Error("Missing TOKEN_SECRET environment variable");
@@ -27,7 +28,30 @@ function signAuthToken(user) {
   });
 }
 
-async function signupUser({ name, email, password }) {
+async function signupUser({
+  name,
+  email,
+  password,
+  termsAccepted,
+  privacyPolicyAccepted,
+  marketingConsent = false,
+}) {
+  if (!termsAccepted) {
+    throw new AppError(
+      400,
+      "Terms acceptance is required.",
+      "TERMS_ACCEPTANCE_REQUIRED"
+    );
+  }
+
+  if (!privacyPolicyAccepted) {
+    throw new AppError(
+      400,
+      "Privacy policy acceptance is required.",
+      "PRIVACY_POLICY_ACCEPTANCE_REQUIRED"
+    );
+  }
+
   const normalizedEmail = email.trim().toLowerCase();
 
   const existingUser = await User.findOne({ email: normalizedEmail });
@@ -42,11 +66,22 @@ async function signupUser({ name, email, password }) {
 
   const passwordHash = await bcrypt.hash(password, 10);
 
+  const now = new Date();
+
   const user = await User.create({
-    name,
+    name: name.trim(),
     email: normalizedEmail,
     password: passwordHash,
     role: "user",
+
+    privacy: {
+      termsAcceptedAt: now,
+      privacyPolicyAcceptedAt: now,
+      privacyPolicyVersion: PRIVACY_POLICY_VERSION,
+      marketingConsent: Boolean(marketingConsent),
+      marketingConsentAt: marketingConsent ? now : null,
+      consentSource: "signup_form",
+    },
   });
 
   const token = signAuthToken(user);

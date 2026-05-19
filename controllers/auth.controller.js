@@ -5,7 +5,10 @@ async function signup(req, res, next) {
   try {
     const { user, token } = await authService.signupUser(req.body);
 
-    res.status(201).json({ token, user: toAuthUserDto(user) });
+    res.status(201).json({
+      user: toAuthUserDto(user),
+      token,
+    });
   } catch (error) {
     next(error);
   }

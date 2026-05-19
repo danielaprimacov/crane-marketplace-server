@@ -27,6 +27,11 @@ async function createUser({
   email = "user@test.com",
   password = TEST_PASSWORD,
   role = ROLES.USER,
+  termsAcceptedAt = new Date(),
+  privacyPolicyAcceptedAt = new Date(),
+  privacyPolicyVersion = "2026-05",
+  marketingConsent = false,
+  marketingConsentAt = null,
 } = {}) {
   const hashedPassword = await bcrypt.hash(password, 10);
 
@@ -35,6 +40,16 @@ async function createUser({
     email,
     password: hashedPassword,
     role,
+    privacy: {
+      termsAcceptedAt,
+      privacyPolicyAcceptedAt,
+      privacyPolicyVersion,
+      marketingConsent,
+      marketingConsentAt: marketingConsent
+        ? marketingConsentAt || new Date()
+        : null,
+      consentSource: "signup_form",
+    },
   });
 }
 
