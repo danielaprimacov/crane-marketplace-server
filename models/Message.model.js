@@ -64,6 +64,28 @@ const messageSchema = new Schema(
       default: null,
     },
 
+    privacyPolicyVersion: {
+      type: String,
+      default: "2026-05",
+    },
+
+    consentSource: {
+      type: String,
+      enum: ["newsletter_modal", "newsletter_form", "footer_newsletter"],
+      default: "newsletter_form",
+    },
+
+    subscriptionStatus: {
+      type: String,
+      enum: ["pending", "confirmed", "unsubscribed"],
+      default: "pending",
+    },
+    
+    unsubscribedAt: {
+      type: Date,
+      default: null,
+    },
+
     isRead: {
       type: Boolean,
       default: false,
