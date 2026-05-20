@@ -94,7 +94,7 @@ async function loginUser({ email, password }) {
 
   const user = await User.findOne({ email: normalizedEmail });
 
-  if (!user) {
+  if (!user || user.isDeleted) {
     throw new AppError(401, "Invalid email or password", "INVALID_CREDENTIALS");
   }
 
@@ -108,7 +108,6 @@ async function loginUser({ email, password }) {
 
   return { user, token };
 }
-
 async function getAuthenticatedUser(userId) {
   const user = await User.findById(userId);
 

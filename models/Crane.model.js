@@ -77,6 +77,10 @@ const craneSchema = new Schema(
     status: { type: String, enum: ["for sale", "for rent"], required: true },
     owner: { type: Schema.Types.ObjectId, ref: "User", required: true },
     availability: { from: { type: Date }, to: { type: Date } },
+    ownerDeleted: {
+      type: Boolean,
+      default: false,
+    },
   },
   { timestamps: true, toJSON: { virtuals: true }, toObject: { virtuals: true } }
 );

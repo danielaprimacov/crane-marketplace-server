@@ -1,12 +1,15 @@
 const bcrypt = require("bcryptjs");
 
 const User = require("../models/User.model");
+const Crane = require("../models/Crane.model");
+const Inquiry = require("../models/Inquiry.model");
+const Message = require("../models/Message.model");
 const AppError = require("../utils/AppError");
 
 async function getUserProfile(userId) {
   const user = await User.findById(userId);
 
-  if (!user) {
+  if (!user || user.isDeleted) {
     throw new AppError(404, "User not found", "USER_NOT_FOUND");
   }
 
@@ -16,33 +19,29 @@ async function getUserProfile(userId) {
 async function updateUserProfile(userId, input) {
   const user = await User.findById(userId);
 
-  if (!user) {
+  if (!user || user.isDeleted) {
     throw new AppError(404, "User not found", "USER_NOT_FOUND");
   }
 
-  const updates = {};
+  const updateData = {};
 
-  if (input.name !== undefined) {
-    updates.name = input.name;
+  if (input.name) {
+    updateData.name = input.name.trim();
   }
 
-  if (input.email !== undefined) {
-    const normalizedEmail = input.email.trim().toLowerCase();
+  if (input.email) {
+    updateData.email = input.email.trim().toLowerCase();
+  }
 
-    const existingUser = await User.findOne({ email: normalizedEmail });
-
-    if (existingUser && existingUser._id.toString() !== userId.toString()) {
+  if (input.newPassword) {
+    if (!input.currentPassword) {
       throw new AppError(
-        409,
-        "A user with this email already exists",
-        "EMAIL_ALREADY_EXISTS"
+        400,
+        "Current password is required",
+        "CURRENT_PASSWORD_REQUIRED"
       );
     }
 
-    updates.email = normalizedEmail;
-  }
-
-  if (input.currentPassword && input.newPassword) {
     const passwordIsValid = await bcrypt.compare(
       input.currentPassword,
       user.password
@@ -50,39 +49,108 @@ async function updateUserProfile(userId, input) {
 
     if (!passwordIsValid) {
       throw new AppError(
-        400,
-        "Current password is wrong",
-        "CURRENT_PASSWORD_INVALID"
+        401,
+        "Current password is incorrect",
+        "INVALID_CURRENT_PASSWORD"
       );
     }
 
-    updates.password = await bcrypt.hash(input.newPassword, 12);
+    updateData.password = await bcrypt.hash(input.newPassword, 10);
   }
 
-  const updatedUser = await User.findByIdAndUpdate(userId, updates, {
+  const updatedUser = await User.findByIdAndUpdate(userId, updateData, {
     new: true,
     runValidators: true,
   });
 
-  if (!updatedUser) {
-    throw new AppError(404, "User not found", "USER_NOT_FOUND");
-  }
-
   return updatedUser;
 }
 
-async function deleteUserProfile(userId) {
-  const deletedUser = await User.findByIdAndDelete(userId);
+async function exportUserData(userId) {
+  const user = await User.findById(userId).select("-password -__v").lean();
 
-  if (!deletedUser) {
+  if (!user || user.isDeleted) {
     throw new AppError(404, "User not found", "USER_NOT_FOUND");
   }
 
-  return deletedUser;
+  const cranes = await Crane.find({ owner: userId }).select("-__v").lean();
+
+  const inquiriesSubmittedByEmail = await Inquiry.find({
+    email: user.email,
+  })
+    .select("-__v")
+    .lean();
+
+  const messagesSubmittedByEmail = await Message.find({
+    email: user.email,
+  })
+    .select("-__v")
+    .lean();
+
+  return {
+    exportedAt: new Date().toISOString(),
+    user,
+    cranes,
+    inquiriesSubmittedByEmail,
+    messagesSubmittedByEmail,
+  };
+}
+
+async function anonymizeUserProfile(userId) {
+  const user = await User.findById(userId);
+
+  if (!user || user.isDeleted) {
+    throw new AppError(404, "User not found", "USER_NOT_FOUND");
+  }
+
+  const now = new Date();
+
+  const anonymizedEmail = `deleted-user-${userId}@deleted.local`;
+  const randomPasswordHash = await bcrypt.hash(
+    `deleted-${userId}-${Date.now()}`,
+    10
+  );
+
+  const anonymizedUser = await User.findByIdAndUpdate(
+    userId,
+    {
+      name: "Deleted user",
+      email: anonymizedEmail,
+      password: randomPasswordHash,
+      isDeleted: true,
+      deletedAt: now,
+      privacy: {
+        ...user.privacy?.toObject?.(),
+        marketingConsent: false,
+        marketingConsentAt: null,
+      },
+    },
+    {
+      new: true,
+      runValidators: true,
+    }
+  );
+
+  await Crane.updateMany(
+    { owner: userId },
+    {
+      $set: {
+        ownerDeleted: true,
+      },
+    }
+  );
+
+  return anonymizedUser;
+}
+
+async function deleteUserProfile(userId) {
+  return anonymizeUserProfile(userId);
 }
 
 module.exports = {
   getUserProfile,
   updateUserProfile,
+  exportUserData,
+  anonymizeUserProfile,
   deleteUserProfile,
 };

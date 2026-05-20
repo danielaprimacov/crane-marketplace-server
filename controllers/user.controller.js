@@ -21,11 +21,23 @@ async function updateProfile(req, res, next) {
   }
 }
 
+async function exportProfile(req, res, next) {
+  try {
+    const data = await userService.exportUserData(req.payload._id);
+
+    res.status(200).json(data);
+  } catch (error) {
+    next(error);
+  }
+}
+
 async function deleteProfile(req, res, next) {
   try {
-    await userService.deleteUserProfile(req.payload._id);
+    await userService.anonymizeUserProfile(req.payload._id);
 
-    res.status(204).send();
+    res.status(200).json({
+      message: "Account deleted successfully.",
+    });
   } catch (error) {
     next(error);
   }
@@ -34,5 +46,6 @@ async function deleteProfile(req, res, next) {
 module.exports = {
   getProfile,
   updateProfile,
+  exportProfile,
   deleteProfile,
 };

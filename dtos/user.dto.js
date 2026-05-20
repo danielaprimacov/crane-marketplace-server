@@ -11,8 +11,10 @@ function toAuthUserDto(user) {
       marketingConsent: Boolean(user.privacy?.marketingConsent),
       marketingConsentAt: user.privacy?.marketingConsentAt || null,
     },
+    isDeleted: Boolean(user.isDeleted),
+    deletedAt: user.deletedAt || null,
     createdAt: user.createdAt,
-    updatedAd: user.updatedAt,
+    updatedAt: user.updatedAt,
   };
 }
 
@@ -31,9 +33,15 @@ function toAdminUserDto(user) {
     name: user.name,
     email: user.email,
     role: user.role,
+    isDeleted: Boolean(user.isDeleted),
+    deletedAt: user.deletedAt || null,
     createdAt: user.createdAt,
-    updatedAd: user.updatedAt,
+    updatedAt: user.updatedAt,
   };
 }
 
-module.exports = { toAuthUserDto, toPublicUserDto, toAdminUserDto };
+module.exports = {
+  toAuthUserDto,
+  toPublicUserDto,
+  toAdminUserDto,
+};

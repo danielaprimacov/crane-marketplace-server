@@ -50,6 +50,17 @@ const userSchema = new Schema(
         default: "signup_form",
       },
     },
+
+    isDeleted: {
+      type: Boolean,
+      default: false,
+      index: true,
+    },
+
+    deletedAt: {
+      type: Date,
+      default: null,
+    },
   },
   { timestamps: true }
 );

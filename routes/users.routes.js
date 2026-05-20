@@ -8,6 +8,7 @@ const { updateProfileSchema } = require("../validations/user.validation");
 const {
   getProfile,
   updateProfile,
+  exportProfile,
   deleteProfile,
 } = require("../controllers/user.controller");
 
@@ -21,6 +22,10 @@ router.patch(
   validateRequest(updateProfileSchema),
   updateProfile
 );
+
+router.get("/me/export", isAuthenticated, exportProfile);
+
+router.delete("/me", isAuthenticated, deleteProfile);
 
 router.delete("/profile", isAuthenticated, deleteProfile);
 
